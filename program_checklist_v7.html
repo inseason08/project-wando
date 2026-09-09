@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로그램 운영 관리 · V6</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;background:#f7f7f4;color:#26312c}
+button,input,select,textarea{font:inherit}
+.app{display:flex;min-height:100vh}
+.sidebar{width:235px;background:#fff;border-right:1px solid #e5e9e5;padding:27px 15px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px 28px;font-weight:800;line-height:1.35}
+.brand-icon{width:37px;height:37px;border-radius:12px;background:#e6f0e8;display:grid;place-items:center;font-size:19px}
+.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:10px;color:#66716b;cursor:pointer}
+.nav button.active,.nav button:hover{background:#edf4ee;color:#3f7256;font-weight:700}
+.sidebar-note{margin:30px 7px 0;padding:13px;background:#fafbf9;border-radius:12px;font-size:11px;color:#7b8580;line-height:1.6}
+.main{flex:1;max-width:1550px;margin:0 auto;padding:32px 38px}
+.tab{display:none}.tab.active{display:block}
+.topline{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+h1{margin:0 0 6px;font-size:25px}h2{margin:0}.sub{color:#7b8580;font-size:13px}
+.datebox{background:#fff;border:1px solid #e3e7e3;border-radius:12px;padding:9px 12px;font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:17px}
+.card,.page-card{background:#fff;border:1px solid #e5e9e5;border-radius:16px;box-shadow:0 3px 14px rgba(30,50,40,.035)}
+.card{padding:16px}.metric{font-size:23px;font-weight:800;margin-top:5px}.label{font-size:11px;color:#7f8984}
+.page-card{padding:19px;margin-bottom:17px}.page-title{font-size:18px;font-weight:800;margin-bottom:4px}.page-desc{font-size:12px;color:#7d8781;margin-bottom:16px}
+.program-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.program-card{border:1px solid #e4e9e5;border-radius:13px;padding:15px;cursor:pointer;transition:.15s;background:#fff}
+.program-card:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(30,50,40,.07)}
+.program-card .title{font-weight:800;font-size:14px}.program-card .meta{font-size:11px;color:#7d8781;margin:6px 0 13px}
+.progress{height:7px;background:#edf0ed;border-radius:20px;overflow:hidden}.progress>i{display:block;height:100%;background:#6d9c7c;border-radius:20px}
+.row{display:flex;align-items:center;gap:8px}.between{justify-content:space-between}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:10px;font-weight:700;background:#eef3ef;color:#55715f}
+.badge.a{background:#eaf3fb;color:#4d7899}.badge.b{background:#f1edfa;color:#79629a}.badge.all{background:#edf4ee;color:#50745e}.badge.completed{background:#f0f0ee;color:#7b807b}.badge.running{background:#eaf3ed;color:#4f7a5d}.badge.planned{background:#eef3ef;color:#55715f}
+.btn{border:1px solid #dce3de;background:#fff;color:#55615a;border-radius:9px;padding:8px 11px;font-size:12px;cursor:pointer}
+.btn.primary{background:#4f8764;border-color:#4f8764;color:#fff}.btn.danger{color:#a75c5c}.btn.small{padding:6px 8px;font-size:11px}
+input,select,textarea{width:100%;border:1px solid #dfe4df;border-radius:8px;background:#fff;padding:9px 10px;font-size:12px;color:#2f3934}
+label{display:block;font-size:11px;color:#6f7a74;margin-bottom:5px}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.toolbar-left{display:flex;gap:8px;align-items:center}.toolbar-left select{width:auto;min-width:180px}
+.table{width:100%;border-collapse:collapse;font-size:12px}.table th,.table td{padding:10px 9px;border-bottom:1px solid #edf0ed;text-align:left;vertical-align:middle}.table th{background:#fafbfa;color:#6f7974;font-size:11px}
+.table input,.table select{padding:7px 8px}.empty{text-align:center;padding:30px;color:#8a948f;font-size:12px}
+.split{display:grid;grid-template-columns:260px 1fr;gap:16px}
+.program-list{border:1px solid #e6eae7;border-radius:12px;padding:7px;max-height:520px;overflow:auto}
+.program-item{padding:12px;border-radius:9px;cursor:pointer;margin-bottom:4px}.program-item.active{background:#edf4ee;color:#477158;font-weight:700}
+.program-item .small{font-size:10px;color:#8a948f;font-weight:400;margin-top:3px}
+.schedule-row{display:grid;grid-template-columns:72px 70px 88px 1fr 125px 30px;gap:7px;align-items:center;padding:9px;background:#fafbfa;border:1px solid #edf0ed;border-radius:9px;margin-bottom:8px}
+.schedule-row input,.schedule-row select{height:34px;padding:6px 7px}.schedule-row .remove{border:0;background:transparent;color:#a16a6a;cursor:pointer}
+.note{font-size:11px;color:#7d8781;background:#fafbf9;border:1px solid #edf0ed;border-radius:10px;padding:10px;line-height:1.55}
+.group-summary{display:flex;gap:8px;align-items:center;padding:10px 12px;background:#fafbf9;border:1px solid #edf0ed;border-radius:10px;font-size:11px;margin-bottom:12px}
+.schedule-display{display:grid;gap:8px}.schedule-display-row{display:grid;grid-template-columns:65px 65px 80px 1fr 80px;gap:8px;align-items:center;padding:10px 11px;border:1px solid #edf0ed;border-radius:9px}
+.schedule-display-row .activity{font-weight:700}.schedule-display-row .place{color:#6d7772;font-size:11px}
+.checklist{display:grid;gap:0}.check-row{display:grid;grid-template-columns:62px 58px minmax(170px,1fr) 92px 112px;gap:9px;align-items:center;padding:8px 4px;border-bottom:1px solid #eef1ee}
+.check-row:last-child{border-bottom:0}.check-title{font-weight:500;font-size:11px}.check-row input,.check-row select{font-size:11px;padding:6px 7px}.muted{color:#909994;font-size:10px}
+.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 295px;gap:16px;align-items:start}.detail-main{min-width:0}.detail-side{position:sticky;top:18px}.detail-side .page-card{margin-bottom:16px}.side-schedule{display:grid;gap:8px}.side-day{border-radius:9px;padding:10px 11px}.side-day:nth-child(3n+1){background:#f0f4fa}.side-day:nth-child(3n+2){background:#f3f0f8}.side-day:nth-child(3n){background:#eef5f1}.side-day h4{margin:0 0 7px;font-size:12px}.side-day div{font-size:10px;line-height:1.65}.circle-progress{width:106px;height:106px;border-radius:50%;margin:16px auto;display:grid;place-items:center;background:conic-gradient(#6d9c7c var(--pct),#e9edea 0)}.circle-progress::after{content:"";width:78px;height:78px;background:#fff;border-radius:50%;grid-area:1/1}.circle-progress span{grid-area:1/1;z-index:1;font-size:18px;font-weight:800}
+.status{font-size:10px;padding:4px 7px;border-radius:12px;text-align:center}.status.done{background:#eaf3ed;color:#4f7a5d}.status.todo{background:#f6f1e8;color:#9a7b4d}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,1fr)}.program-grid{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}.schedule-row{grid-template-columns:60px 60px 75px 1fr 100px 25px}.detail-layout{grid-template-columns:1fr}.detail-side{position:static}}
+@media(max-width:700px){.sidebar{width:190px}.main{padding:22px 16px}.program-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.schedule-display-row{grid-template-columns:55px 55px 70px 1fr 65px}.check-row{grid-template-columns:55px 55px 1fr}.check-row .assignee{grid-column:3}.check-row .row{grid-column:3}.detail-layout{grid-template-columns:1fr}}
+ .timeline{display:flex;gap:7px;overflow:auto;padding:3px 0 5px}.timeline-item{min-width:82px;padding:10px 8px;border:1px solid #e5e9e5;border-radius:10px;background:#fafbfa;text-align:center}.timeline-item.active{background:#edf4ee;border-color:#cfe0d3;color:#477158}.timeline-item .day{font-size:10px;color:#7d8781}.timeline-item .date{font-weight:800;font-size:12px;margin-top:4px}.timeline-item .count{font-size:9px;color:#87918b;margin-top:5px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-icon">✓</div><div>프로그램<br>운영 관리</div></div>
+  <nav class="nav">
+    <button class="active" onclick="showTab('dashboard',this)">⌂　운영 대시보드</button>
+    <button onclick="showTab('program',this)">▣　프로그램별 일정 관리</button>
+    <button onclick="showTab('checklist',this)">☑　체크리스트</button>
+  </nav>
+  <div class="sidebar-note">프로그램별 일정과 준비 업무를<br>독립적으로 관리하고<br>완료된 프로그램도<br>참고할 수 있습니다.</div>
+</aside>
+
+<main class="main">
+
+<section id="tab-dashboard" class="tab active">
+  <!-- 전체 요약 -->
+  <div id="dashboardSummary">
+    <div class="topline">
+      <div><h1>운영 대시보드</h1><div class="sub">여러 프로그램의 현재 진행상황을 요약해서 확인합니다.</div></div>
+      <div class="datebox" id="todayLabel"></div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="label">전체 프로그램</div><div class="metric" id="metricPrograms">0</div></div>
+      <div class="card"><div class="label">오늘 할 준비 업무</div><div class="metric" id="metricToday">0건</div></div>
+      <div class="card"><div class="label">전체 체크리스트 완료율</div><div class="metric" id="metricProgress">0%</div></div>
+      <div class="card"><div class="label">진행 중 / 예정</div><div class="metric" id="metricActive">0</div></div>
+    </div>
+    <div class="page-card">
+      <div class="toolbar">
+        <div><div class="page-title">프로그램별 진행상황</div><div class="page-desc" style="margin-bottom:0">카드를 클릭하면 해당 프로그램의 상세 운영 페이지로 들어갑니다.</div></div>
+        <button class="btn primary" onclick="newProgram()">＋ 새 프로그램</button>
+      </div>
+      <div class="program-grid" id="dashboardPrograms"></div>
+      <div id="dashboardCompletedWrap" style="margin-top:22px;display:none"><div class="page-title" style="font-size:15px;margin-bottom:10px">완료 프로그램</div><div class="program-grid" id="dashboardCompleted"></div></div>
+    </div>
+  </div>
+
+  <!-- 개별 프로그램 상세 운영 페이지 -->
+  <div id="programDetail" style="display:none">
+    <div class="topline">
+      <div>
+        <button class="btn small" onclick="backToDashboard()">← 전체 대시보드</button>
+        <h1 id="detailTitle" style="margin-top:12px">프로그램</h1>
+        <div class="sub" id="detailMeta"></div>
+      </div>
+      <div class="toolbar-left">
+        <select id="detailProgramSelect" onchange="changeDetailProgram(this.value)"></select>
+        <div class="datebox" id="detailToday"></div>
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="page-card" style="padding:14px 16px">
+          <div class="row between">
+            <div><div class="label">운영 기간</div><div style="font-weight:800;font-size:15px" id="detailDateRange"></div></div>
+            <div class="row" style="gap:7px" id="detailGroupBadges"></div>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card"><div class="label">운영 인원</div><div class="metric" id="detailParticipants">0명</div></div>
+          <div class="card"><div class="label">체크리스트</div><div class="metric" id="detailChecklistPct">0%</div></div>
+          <div class="card"><div class="label">남은 준비 업무</div><div class="metric" id="detailTodayTasks">0건</div></div>
+          <div class="card"><div class="label">조 편성</div><div class="metric" id="detailGroups">공동</div></div>
+        </div>
+
+        <div class="page-card">
+          <div class="toolbar">
+            <div><div class="page-title">준비 일정 한눈에 보기</div><div class="page-desc" style="margin-bottom:0">프로그램 시작 전 준비부터 운영 종료 후 정리까지 확인합니다.</div></div>
+          </div>
+          <div id="detailTimeline"></div>
+        </div>
+
+        <div class="page-card">
+          <div class="toolbar">
+            <div><div class="page-title">오늘의 할 일</div><div class="page-desc" style="margin-bottom:0">현재 처리해야 하는 준비 업무입니다.</div></div>
+            <button class="btn" onclick="openChecklistForCurrent()">전체 체크리스트</button>
+          </div>
+          <div id="detailTodayTasksArea"></div>
+        </div>
+
+        <div class="page-card">
+          <div class="toolbar">
+            <div><div class="page-title">전체 체크리스트</div><div class="page-desc" style="margin-bottom:0">체크하면 진행률에 반영됩니다. 담당자를 함께 확인할 수 있습니다.</div></div>
+          </div>
+          <div id="detailChecklist"></div>
+        </div>
+
+        <div class="page-card">
+          <div class="toolbar">
+            <div><div class="page-title">업체 / 예약 관리</div><div class="page-desc" style="margin-bottom:0">식당 · 숙소 · 체험 · 차량 등의 예약 상태를 관리합니다.</div></div>
+            <button class="btn primary" onclick="alert('예약 항목 추가 기능은 다음 단계에서 연결할 수 있어요.')">＋ 예약 추가</button>
+          </div>
+          <div id="detailReservations"></div>
+        </div>
+
+        <div class="page-card">
+          <div class="page-title">운영 메모</div>
+          <div class="page-desc">이 프로그램에만 남겨둘 메모입니다.</div>
+          <textarea id="detailMemo" rows="4" placeholder="현장 전달사항, 특이사항 등을 기록하세요." onchange="saveMemo(this.value)"></textarea>
+        </div>
+      </div>
+
+      <aside class="detail-side">
+        <div class="page-card">
+          <div class="page-title">전체 진행률</div>
+          <div id="detailProgressCircle" class="circle-progress" style="--pct:0%"><span>0%</span></div>
+          <div class="row" style="border-top:1px solid #edf0ed;padding-top:13px;justify-content:space-around;text-align:center">
+            <div><b id="sideDone">0</b><div class="muted">완료</div></div>
+            <div><b id="sideTodo">0</b><div class="muted">미완료</div></div>
+            <div><b id="sideTotal">0</b><div class="muted">전체</div></div>
+          </div>
+        </div>
+        <div class="page-card">
+          <div class="toolbar">
+            <div class="page-title">프로그램 일정</div>
+            <div class="muted" id="sideDays">0일</div>
+          </div>
+          <div id="detailSideSchedule" class="side-schedule"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="tab-program" class="tab">
+  <div class="page-card">
+    <div class="toolbar">
+      <div>
+        <div class="page-title">프로그램별 일정 관리</div>
+        <div class="page-desc" style="margin-bottom:0">진행 중·예정·완료된 모든 프로그램의 일정과 운영 설정을 확인하고 수정합니다.</div>
+      </div>
+      <button class="btn primary" onclick="newProgram()">＋ 새 프로그램</button>
+    </div>
+    <div class="split">
+      <div class="program-list" id="programList"></div>
+      <div>
+        <div class="page-card" style="margin:0 0 12px;background:#fafbf9;box-shadow:none">
+          <div class="form-grid">
+            <div><label>프로그램명</label><input id="editName"></div>
+            <div><label>시작일</label><input id="editStart" type="date"></div>
+            <div><label>기간 (박)</label><input id="editNights" type="number" min="0"></div>
+            <div><label>조 운영</label><select id="editGroup"><option value="no">공동 운영</option><option value="yes">A/B조 운영</option></select></div>
+          </div>
+          <div class="row" style="justify-content:flex-end;margin-top:10px;gap:7px">
+            <button class="btn danger" onclick="deleteCurrentProgram()">프로그램 삭제</button>
+            <button class="btn primary" onclick="saveProgram()">저장</button>
+          </div>
+        </div>
+
+        <div class="page-card" style="margin:0 0 12px;box-shadow:none">
+          <div class="toolbar">
+            <div>
+              <div class="page-title" style="font-size:15px">조 편성 운영</div>
+              <div class="page-desc" style="margin-bottom:0">신청자 명단은 관리하지 않고, 실제 운영에 필요한 인원과 A/B조 구성만 기록합니다.</div>
+            </div>
+          </div>
+          <div class="form-grid three">
+            <div><label>총 운영 인원</label><input id="editParticipants" type="number" min="0" onchange="updateGroupCounts()"></div>
+            <div><label>A조 인원</label><input id="editGroupA" type="number" min="0" onchange="updateGroupTotalFromGroups()"></div>
+            <div><label>B조 인원</label><input id="editGroupB" type="number" min="0" onchange="updateGroupTotalFromGroups()"></div>
+          </div>
+          <div class="note" style="margin-top:10px">A/B조 운영을 선택하면 총 인원을 기준으로 A/B를 균등하게 나눌 수 있습니다. 필요하면 A조·B조 인원을 직접 수정할 수 있습니다.</div>
+        </div>
+
+        <div id="scheduleSetting"></div>
+
+        <div class="page-card" style="margin:12px 0 0;box-shadow:none;background:#fafbf9">
+          <div class="toolbar">
+            <div>
+              <div class="page-title" style="font-size:15px">코스 기본 일정</div>
+              <div class="page-desc" style="margin-bottom:0">변경되지 않는 코스 일정은 기본값으로 저장해두고 반복 운영할 때 재사용합니다.</div>
+            </div>
+            <div class="toolbar-left">
+              <button class="btn" onclick="saveAsBaseSchedule()">현재 일정을 기본 일정으로 저장</button>
+              <button class="btn" onclick="loadBaseSchedule()">기본 일정 불러오기</button>
+            </div>
+          </div>
+          <div class="note">현재 프로그램의 일정이 이 코스의 기본 일정입니다. 실제 운영일이 달라져도 일정 구조는 그대로 재사용할 수 있습니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-checklist" class="tab">
+  <div class="page-card">
+    <div class="toolbar">
+      <div><div class="page-title">체크리스트</div><div class="page-desc" style="margin-bottom:0">프로그램별 준비 업무와 담당자를 관리합니다.</div></div>
+      <div class="toolbar-left"><select id="checkProgramSelect" onchange="renderChecklist()"></select><button class="btn primary" onclick="addChecklist()">＋ 업무 추가</button></div>
+    </div>
+    <div id="checklistArea"></div>
+  </div>
+</section>
+
+
+
+</main>
+</div>
+
+<script>
+const KEY="programOpsPrototypeV6";
+const saved=JSON.parse(localStorage.getItem(KEY)||"null");
+let state=saved||{
+  currentProgram:"바다체험 3박4일",
+  programs:{
+    "바다체험 3박4일":{
+      name:"바다체험 3박4일",start:"2026-09-14",nights:3,groupCapable:true,
+      participantCount:9,groupA:5,groupB:4,
+      schedules:[
+        {day:"DAY 1",time:"09:30",scope:"공동",activity:"참가자 집결",place:"○○터미널"},
+        {day:"DAY 1",time:"10:00",scope:"공동",activity:"차량 및 이동",place:""},
+        {day:"DAY 1",time:"13:00",scope:"공동",activity:"해양 체험",place:"○○해양체험"},
+        {day:"DAY 1",time:"15:00",scope:"공동",activity:"자유시간",place:""},
+        {day:"DAY 1",time:"18:30",scope:"공동",activity:"저녁 식사",place:"○○식당"},
+        {day:"DAY 1",time:"20:00",scope:"공동",activity:"숙소 체크인",place:"○○호텔"},
+        {day:"DAY 2",time:"09:00",scope:"A",activity:"오전 체험",place:"○○양식장"},
+        {day:"DAY 2",time:"09:00",scope:"B",activity:"오전 체험",place:"○○양식장"},
+        {day:"DAY 2",time:"12:30",scope:"공동",activity:"점심 식사",place:"○○식당"},
+        {day:"DAY 2",time:"14:00",scope:"A",activity:"오후 체험",place:"○○스튜디오"},
+        {day:"DAY 2",time:"14:00",scope:"B",activity:"오후 체험",place:"○○스튜디오"},
+        {day:"DAY 2",time:"18:30",scope:"공동",activity:"저녁 식사",place:"○○식당"},
+        {day:"DAY 2",time:"20:00",scope:"공동",activity:"숙소 이동 및 휴식",place:""},
+        {day:"DAY 3",time:"09:00",scope:"A",activity:"오전 체험",place:"○○농장"},
+        {day:"DAY 3",time:"09:00",scope:"B",activity:"오전 체험",place:"○○농장"},
+        {day:"DAY 3",time:"12:30",scope:"공동",activity:"점심 식사",place:"○○식당"},
+        {day:"DAY 3",time:"15:00",scope:"공동",activity:"자유시간",place:""},
+        {day:"DAY 3",time:"18:30",scope:"공동",activity:"저녁 식사",place:"○○식당"},
+        {day:"DAY 3",time:"20:00",scope:"공동",activity:"숙소",place:""},
+        {day:"DAY 4",time:"09:00",scope:"공동",activity:"체크아웃",place:"○○호텔"},
+        {day:"DAY 4",time:"10:00",scope:"공동",activity:"마지막 체험",place:""},
+        {day:"DAY 4",time:"12:30",scope:"공동",activity:"점심 식사",place:""},
+        {day:"DAY 4",time:"14:00",scope:"공동",activity:"해산",place:""}
+      ],
+      baseSchedule:[],
+      checklist:[
+        {relative:"D-14",task:"숙소 예약",assignee:"김담당",done:true},
+        {relative:"D-14",task:"주요 체험 예약",assignee:"김담당",done:false},
+        {relative:"D-7",task:"식당 예약",assignee:"이담당",done:false},
+        {relative:"D-7",task:"체험업체 일정 재확인",assignee:"이담당",done:false},
+        {relative:"D-3",task:"최종 참가인원 전달",assignee:"김담당",done:false},
+        {relative:"D-1",task:"숙소 최종 확인",assignee:"김담당",done:false},
+        {relative:"D-1",task:"식당 최종 확인",assignee:"이담당",done:false},
+        {relative:"DAY 1",task:"차량 탑승 명단 확인",assignee:"현장담당",done:false},
+        {relative:"DAY 2",task:"A/B조 진행 상황 체크",assignee:"김담당",done:false},
+        {relative:"DAY 4",task:"체크아웃 확인",assignee:"현장담당",done:false},
+        {relative:"D+1",task:"정산자료 정리",assignee:"이담당",done:false}
+      ],
+      reservations:[
+        {type:"숙소",name:"○○호텔 / 6객실 / 3박",status:"확정",assignee:"김담당"},
+        {type:"체험",name:"○○해양체험 / 9명",status:"확인 필요",assignee:"김담당"},
+        {type:"식사",name:"○○식당 / DAY 1 저녁",status:"확정",assignee:"이담당"}
+      ],
+      memo:""
+    },
+    "섬마을 1박2일":{
+      name:"섬마을 1박2일",start:"2026-09-20",nights:1,groupCapable:false,
+      participantCount:2,groupA:0,groupB:0,
+      schedules:[
+        {day:"DAY 1",time:"13:00",scope:"공동",activity:"마을 체험",place:"섬마을"},
+        {day:"DAY 1",time:"18:00",scope:"공동",activity:"저녁 식사",place:"마을식당"},
+        {day:"DAY 2",time:"10:00",scope:"공동",activity:"해산",place:"선착장"}
+      ],
+      baseSchedule:[],
+      checklist:[
+        {relative:"D-7",task:"숙소 예약 확인",assignee:"이담당",done:true},
+        {relative:"D-3",task:"식당 예약",assignee:"이담당",done:false},
+        {relative:"D-1",task:"참가 인원 확인",assignee:"김담당",done:false}
+      ],
+      reservations:[],memo:""
+    },
+    "지난 섬마을 1박2일":{
+      name:"지난 섬마을 1박2일",start:"2026-08-20",nights:1,groupCapable:false,
+      participantCount:6,groupA:0,groupB:0,
+      schedules:[
+        {day:"DAY 1",time:"13:00",scope:"공동",activity:"마을 체험",place:"섬마을"},
+        {day:"DAY 1",time:"18:00",scope:"공동",activity:"저녁 식사",place:"마을식당"},
+        {day:"DAY 2",time:"10:00",scope:"공동",activity:"해산",place:"선착장"}
+      ],
+      baseSchedule:[],
+      checklist:[
+        {relative:"D-7",task:"숙소 예약 확인",assignee:"이담당",done:true},
+        {relative:"D-3",task:"식당 예약",assignee:"이담당",done:true},
+        {relative:"D-1",task:"참가 인원 확인",assignee:"김담당",done:true},
+        {relative:"DAY 1",task:"현장 비품 확인",assignee:"현장담당",done:true}
+      ],
+      reservations:[
+        {type:"숙소",name:"○○민박",status:"확정",assignee:"이담당"},
+        {type:"식사",name:"마을식당",status:"확정",assignee:"이담당"}
+      ],
+      memo:"완료된 프로그램 참고용 예시입니다."
+    }
+  }
+};
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function programs(){return Object.values(state.programs)}
+function cur(){return state.programs[state.currentProgram]}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function fmtDate(v){if(!v)return "";let d=new Date(v+"T00:00:00");return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
+function endDate(p){let d=new Date((p.start||"2999-12-31")+"T00:00:00");d.setDate(d.getDate()+p.nights+1);return d}
+function statusOf(p){
+  const today=new Date();today.setHours(0,0,0,0);
+  const s=new Date((p.start||"2999-12-31")+"T00:00:00"), e=endDate(p);
+  if(e<today)return "완료";
+  if(s<=today)return "진행 중";
+  return "예정";
+}
+function statusBadge(p){
+  const s=statusOf(p);
+  return `<span class="badge ${s==="완료"?"completed":s==="진행 중"?"running":"planned"}">${s}</span>`;
+}
+function showTab(id,btn){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.getElementById("tab-"+id).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  if(id==="dashboard"){document.getElementById("dashboardSummary").style.display="block";document.getElementById("programDetail").style.display="none";renderDashboard()}
+  if(id==="program")renderProgramManager();
+  if(id==="checklist"){fillProgramSelect("checkProgramSelect");renderChecklist()}
+}
+function fillProgramSelect(id){
+  const el=document.getElementById(id), old=el.value;
+  el.innerHTML=programs().map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");
+  el.value=state.programs[old]?old:state.currentProgram;
+  if(el.value)state.currentProgram=el.value;
+}
+function renderDashboard(){
+  const ps=programs();
+  const all=ps.reduce((a,p)=>a+p.checklist.length,0), done=ps.reduce((a,p)=>a+p.checklist.filter(x=>x.done).length,0);
+  const pending=ps.reduce((a,p)=>a+p.checklist.filter(x=>!x.done).length,0);
+  const active=ps.filter(p=>statusOf(p)!=="완료").length;
+  document.getElementById("metricPrograms").textContent=ps.length;
+  document.getElementById("metricToday").textContent=pending+"건";
+  document.getElementById("metricProgress").textContent=(all?Math.round(done/all*100):0)+"%";
+  document.getElementById("metricActive").textContent=active;
+  const activePs=ps.filter(p=>statusOf(p)!=="완료"), donePs=ps.filter(p=>statusOf(p)==="완료");
+  document.getElementById("dashboardPrograms").innerHTML=activePs.length?activePs.map(renderProgramCard).join(""):`<div class="empty">진행 중이거나 예정된 프로그램이 없습니다.</div>`;
+  document.getElementById("dashboardCompletedWrap").style.display=donePs.length?"block":"none";
+  document.getElementById("dashboardCompleted").innerHTML=donePs.map(renderProgramCard).join("");
+}
+function renderProgramCard(p){
+  const d=p.checklist.length?Math.round(p.checklist.filter(x=>x.done).length/p.checklist.length*100):0;
+  return `<div class="program-card" onclick="openProgram('${esc(p.name)}')" style="${statusOf(p)==="완료"?"opacity:.82":""}">
+    <div class="row between"><div class="title">${esc(p.name)}</div><div class="row" style="gap:5px">${statusBadge(p)}<span class="badge">${p.groupCapable?"A/B조 운영":"공동 운영"}</span></div></div>
+    <div class="meta">${fmtDate(p.start)} · ${p.nights}박${p.nights+1}일 · 체크 ${p.checklist.filter(x=>x.done).length}/${p.checklist.length}</div>
+    <div class="row between" style="margin-bottom:6px"><span class="muted">준비 진행률</span><span class="muted">${d}%</span></div>
+    <div class="progress"><i style="width:${d}%"></i></div>
+    <div class="row between" style="margin-top:10px"><span class="muted">${statusOf(p)==="완료"?"완료된 프로그램":"남은 업무 "+p.checklist.filter(x=>!x.done).length+"건"}</span><span class="muted">운영 ${p.participantCount||0}명</span></div>
+    ${p.groupCapable?`<div class="row" style="margin-top:10px"><span class="badge a">A조 ${p.groupA||0}</span><span class="badge b">B조 ${p.groupB||0}</span></div>`:""}
+  </div>`;
+}
+function openProgram(name){
+  state.currentProgram=name;save();
+  document.getElementById("dashboardSummary").style.display="none";
+  document.getElementById("programDetail").style.display="block";
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  document.querySelector(".nav button").classList.add("active");
+  renderProgramDetail();
+}
+function backToDashboard(){document.getElementById("programDetail").style.display="none";document.getElementById("dashboardSummary").style.display="block";renderDashboard()}
+function changeDetailProgram(name){state.currentProgram=name;save();renderProgramDetail()}
+function dayDateLabel(p,day){
+  const m=String(day||"").match(/DAY\\s*(\\d+)/);
+  if(!m)return "";
+  const d=new Date((p.start||"2999-12-31")+"T00:00:00");d.setDate(d.getDate()+(+m[1]-1));
+  return `${d.getMonth()+1}.${d.getDate()}`;
+}
+function timelineItems(p){
+  const items=[{off:-14,label:"D-14"},{off:-7,label:"D-7"},{off:-3,label:"D-3"},{off:-1,label:"D-1"}];
+  for(let i=0;i<=p.nights;i++)items.push({off:i,label:`DAY ${i+1}`});
+  items.push({off:p.nights+1,label:"D+1"});
+  return items;
+}
+function renderProgramDetail(){
+  const p=cur();if(!p)return;
+  const done=p.checklist.filter(x=>x.done).length,total=p.checklist.length,pct=total?Math.round(done/total*100):0;
+  const start=new Date((p.start||new Date().toISOString().slice(0,10))+"T00:00:00"), end=endDate(p);
+  document.getElementById("detailTitle").textContent=p.name;
+  document.getElementById("detailMeta").innerHTML=`${fmtDate(p.start)} · ${p.nights}박${p.nights+1}일 · ${statusBadge(p)}`;
+  document.getElementById("detailToday").textContent=document.getElementById("todayLabel").textContent;
+  document.getElementById("detailDateRange").textContent=`${fmtDate(p.start)} ~ ${fmtDate(end.toISOString().slice(0,10))}`;
+  document.getElementById("detailParticipants").textContent=(p.participantCount||0)+"명";
+  document.getElementById("detailChecklistPct").textContent=pct+"%";
+  document.getElementById("detailTodayTasks").textContent=p.checklist.filter(x=>!x.done).length+"건";
+  document.getElementById("detailGroups").textContent=p.groupCapable?`A ${p.groupA||0} / B ${p.groupB||0}`:"공동";
+  document.getElementById("detailMemo").value=p.memo||"";
+  const sel=document.getElementById("detailProgramSelect");
+  sel.innerHTML=programs().map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("");sel.value=p.name;
+  document.getElementById("detailGroupBadges").innerHTML=p.groupCapable?`<span class="badge a">A조 ${p.groupA||0}명</span><span class="badge b">B조 ${p.groupB||0}명</span>`:`<span class="badge all">공동 진행</span>`;
+
+  document.getElementById("detailTimeline").innerHTML=`<div class="timeline">${timelineItems(p).map(it=>{
+    const dt=new Date(start);dt.setDate(dt.getDate()+it.off), cnt=p.checklist.filter(x=>x.relative===it.label).length;
+    return `<div class="timeline-item ${it.off===0?"active":""}"><div class="day">${it.label}</div><div class="date">${String(dt.getMonth()+1).padStart(2,"0")}.${String(dt.getDate()).padStart(2,"0")}</div><div class="count">${cnt?cnt+"개 업무":""}</div></div>`;
+  }).join("")}</div>`;
+
+  const pending=p.checklist.filter(x=>!x.done);
+  document.getElementById("detailTodayTasksArea").innerHTML=pending.length?pending.slice(0,6).map(x=>`<div class="row between" style="padding:8px 2px;border-bottom:1px solid #eef1ee"><div><span class="badge" style="margin-right:7px">${esc(x.relative)}</span><span class="check-title">${esc(x.task)}</span></div><span class="assignee badge">${esc(x.assignee||"미지정")}</span></div>`).join(""):`<div class="empty">남아 있는 준비 업무가 없습니다.</div>`;
+
+  const scopes=p.groupCapable?["공동","A","B"]:["공동"], schedules=p.schedules.filter(s=>scopes.includes(s.scope));
+  document.getElementById("detailSideSchedule").innerHTML=schedules.length?Object.entries(schedules.reduce((a,s)=>{(a[s.day]??=[]).push(s);return a},{})).map(([day,rows])=>`<div class="side-day"><h4>${esc(day)} · ${dayDateLabel(p,day)}</h4>${rows.map(s=>`<div><b>${esc(s.time)}</b>　${s.scope==="A"?"A조":s.scope==="B"?"B조":"공동"}　${esc(s.activity||"미입력")}</div>`).join("")}</div>`).join(""):`<div class="empty">등록된 일정이 없습니다.</div>`;
+  document.getElementById("sideDays").textContent=(p.nights+1)+"일";
+  document.getElementById("detailProgressCircle").style.setProperty("--pct",pct+"%");
+  document.querySelector("#detailProgressCircle span").textContent=pct+"%";
+  document.getElementById("sideDone").textContent=done;document.getElementById("sideTodo").textContent=total-done;document.getElementById("sideTotal").textContent=total;
+
+  document.getElementById("detailChecklist").innerHTML=total?`<div class="checklist"><div class="check-row" style="font-size:10px;color:#7d8781;font-weight:700;background:#fafbfa;border-bottom:1px solid #e6eae7;padding-top:7px;padding-bottom:7px"><div>날짜</div><div>구분</div><div>할 일</div><div>담당자</div><div>상태</div></div>${p.checklist.map((x,i)=>`<div class="check-row"><div class="muted">${esc(x.relative)}</div><span class="badge">${esc(categoryOf(x.task))}</span><div class="check-title">${esc(x.task)}</div><span class="assignee">${esc(x.assignee||"미지정")}</span><div class="row"><span class="status ${x.done?"done":"todo"}">${x.done?"완료":"미완료"}</span><button class="btn small" onclick="toggleChecklistFromDetail(${i})">${x.done?"되돌리기":"완료"}</button></div></div>`).join("")}</div>`:`<div class="empty">체크리스트가 없습니다.</div>`;
+
+  const reservations=p.reservations||[];
+  document.getElementById("detailReservations").innerHTML=reservations.length?`<table class="table"><thead><tr><th>구분</th><th>항목</th><th>상태</th><th>담당자</th></tr></thead><tbody>${reservations.map((r,i)=>`<tr><td>${esc(r.type)}</td><td>${esc(r.name)}</td><td><select onchange="updateReservation(${i},'status',this.value)"><option ${r.status==="예약 전"?"selected":""}>예약 전</option><option ${r.status==="확인 필요"?"selected":""}>확인 필요</option><option ${r.status==="확정"?"selected":""}>확정</option></select></td><td><select onchange="updateReservation(${i},'assignee',this.value)">${["김담당","이담당","현장담당","미지정"].map(v=>`<option ${r.assignee===v?"selected":""}>${v}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>`:`<div class="empty">등록된 예약 항목이 없습니다.</div>`;
+}
+function saveMemo(v){cur().memo=v;save()}
+function toggleChecklistFromDetail(i){cur().checklist[i].done=!cur().checklist[i].done;save();renderProgramDetail();renderDashboard()}
+function updateReservation(i,k,v){cur().reservations[i][k]=v;save();renderProgramDetail()}
+function openChecklistForCurrent(){
+  const btn=[...document.querySelectorAll(".nav button")].find(x=>x.textContent.includes("체크리스트"));
+  fillProgramSelect("checkProgramSelect");document.getElementById("checkProgramSelect").value=state.currentProgram;showTab("checklist",btn);
+}
+function openProgramManagerForCurrent(){
+  const btn=[...document.querySelectorAll(".nav button")].find(x=>x.textContent.includes("프로그램별 일정 관리"));
+  showTab("program",btn);renderProgramManager();
+}
+function newProgram(){
+  let base="새 프로그램",i=1,name=base;while(state.programs[name])name=base+" "+i++;
+  state.programs[name]={name,start:new Date().toISOString().slice(0,10),nights:1,groupCapable:false,participantCount:0,groupA:0,groupB:0,schedules:[],baseSchedule:[],checklist:[],reservations:[],memo:""};
+  state.currentProgram=name;save();openProgramManagerForCurrent();
+}
+function renderProgramManager(){
+  document.getElementById("programList").innerHTML=programs().map(p=>`<div class="program-item ${p.name===state.currentProgram?"active":""}" onclick="state.currentProgram='${esc(p.name)}';save();renderProgramManager()"><div class="row between"><b>${esc(p.name)}</b>${statusBadge(p)}</div><div class="small">${fmtDate(p.start)} · ${p.nights}박${p.nights+1}일 · 운영 ${p.participantCount||0}명</div></div>`).join("");
+  const p=cur();if(!p)return;
+  document.getElementById("editName").value=p.name;document.getElementById("editStart").value=p.start;document.getElementById("editNights").value=p.nights;document.getElementById("editGroup").value=p.groupCapable?"yes":"no";
+  document.getElementById("editParticipants").value=p.participantCount||0;document.getElementById("editGroupA").value=p.groupA||0;document.getElementById("editGroupB").value=p.groupB||0;
+  renderScheduleSetting();
+}
+function saveProgram(){
+  const old=state.currentProgram,p=cur(),name=document.getElementById("editName").value.trim()||old;
+  if(name!==old&&state.programs[name])return alert("같은 이름의 프로그램이 이미 있습니다.");
+  if(name!==old){state.programs[name]=p;delete state.programs[old];state.currentProgram=name;p.name=name}
+  p.start=document.getElementById("editStart").value;p.nights=Math.max(0,+document.getElementById("editNights").value||0);p.groupCapable=document.getElementById("editGroup").value==="yes";
+  p.participantCount=Math.max(0,+document.getElementById("editParticipants").value||0);p.groupA=Math.max(0,+document.getElementById("editGroupA").value||0);p.groupB=Math.max(0,+document.getElementById("editGroupB").value||0);
+  if(!p.groupCapable){p.groupA=0;p.groupB=0}else if(p.groupA+p.groupB!==p.participantCount){p.participantCount=p.groupA+p.groupB}
+  save();renderProgramManager();renderDashboard();
+}
+function updateGroupCounts(){
+  const p=cur();p.participantCount=Math.max(0,+document.getElementById("editParticipants").value||0);
+  if(p.groupCapable){p.groupA=Math.ceil(p.participantCount/2);p.groupB=Math.floor(p.participantCount/2)}else{p.groupA=0;p.groupB=0}
+  document.getElementById("editGroupA").value=p.groupA;document.getElementById("editGroupB").value=p.groupB;save();
+}
+function updateGroupTotalFromGroups(){
+  const p=cur();p.groupA=Math.max(0,+document.getElementById("editGroupA").value||0);p.groupB=Math.max(0,+document.getElementById("editGroupB").value||0);p.participantCount=p.groupA+p.groupB;document.getElementById("editParticipants").value=p.participantCount;save();
+}
+function deleteCurrentProgram(){
+  if(programs().length<=1)return alert("프로그램이 하나 이상은 있어야 합니다.");
+  if(!confirm(`"${cur().name}" 프로그램을 삭제할까요?`))return;
+  delete state.programs[state.currentProgram];state.currentProgram=programs()[0].name;save();renderProgramManager();renderDashboard();
+}
+function renderScheduleSetting(){
+  const p=cur(),disabled=!p.groupCapable;
+  document.getElementById("scheduleSetting").innerHTML=`<div class="page-card" style="margin:0;box-shadow:none">
+    <div class="toolbar"><div><div class="page-title" style="font-size:15px">프로그램 일정</div><div class="page-desc" style="margin-bottom:0">${disabled?"공동 일정으로 관리됩니다.":"공동 / A조 / B조를 각각 지정할 수 있습니다."}</div></div><button class="btn primary" onclick="addSchedule()">＋ 일정 추가</button></div>
+    <div id="scheduleRows">${p.schedules.length?p.schedules.map((s,i)=>scheduleRow(s,i)).join(""):`<div class="empty">아직 입력된 일정이 없습니다. '일정 추가'로 시작하세요.</div>`}</div>
+  </div>`;
+}
+function scheduleRow(s,i){
+  const p=cur();
+  return `<div class="schedule-row"><input value="${esc(s.day)}" onchange="updateSchedule(${i},'day',this.value)" placeholder="DAY 2"><input value="${esc(s.time)}" onchange="updateSchedule(${i},'time',this.value)" placeholder="10:00"><select onchange="updateSchedule(${i},'scope',this.value)" ${p.groupCapable?"":"disabled"}><option value="공동" ${s.scope==="공동"?"selected":""}>공동</option><option value="A" ${s.scope==="A"?"selected":""}>A조</option><option value="B" ${s.scope==="B"?"selected":""}>B조</option></select><input value="${esc(s.activity)}" onchange="updateSchedule(${i},'activity',this.value)" placeholder="프로그램 / 활동명"><input value="${esc(s.place)}" onchange="updateSchedule(${i},'place',this.value)" placeholder="장소 / 업체"><button class="remove" onclick="removeSchedule(${i})">×</button></div>`;
+}
+function saveAsBaseSchedule(){cur().baseSchedule=JSON.parse(JSON.stringify(cur().schedules));save();alert("현재 일정이 이 코스의 기본 일정으로 저장되었습니다.")}
+function loadBaseSchedule(){if(!cur().baseSchedule?.length)return alert("저장된 기본 일정이 없습니다.");cur().schedules=JSON.parse(JSON.stringify(cur().baseSchedule));save();renderScheduleSetting()}
+function addSchedule(){cur().schedules.push({day:"DAY 1",time:"10:00",scope:"공동",activity:"",place:""});save();renderScheduleSetting()}
+function updateSchedule(i,k,v){cur().schedules[i][k]=v;save();renderScheduleSetting()}
+function removeSchedule(i){cur().schedules.splice(i,1);save();renderScheduleSetting()}
+function categoryOf(task){
+  const t=String(task||"");
+  if(t.includes("숙소"))return "숙소";
+  if(t.includes("식당")||t.includes("식사"))return "식사";
+  if(t.includes("체험"))return "체험";
+  if(t.includes("차량")||t.includes("이동"))return "이동";
+  return "기타";
+}
+function addChecklist(){cur().checklist.push({relative:"D-1",task:"새 준비 업무",assignee:"미지정",done:false});save();renderChecklist()}
+function renderChecklist(){
+  const p=state.programs[document.getElementById("checkProgramSelect").value]||cur();state.currentProgram=p.name;
+  document.getElementById("checklistArea").innerHTML=`<div class="checklist"><div class="check-row" style="font-size:10px;color:#7d8781;font-weight:700;background:#fafbfa;border-bottom:1px solid #e6eae7;padding-top:7px;padding-bottom:7px"><div>날짜</div><div>구분</div><div>할 일</div><div>담당자</div><div>상태</div></div>${p.checklist.length?p.checklist.map((x,i)=>`<div class="check-row"><input value="${esc(x.relative)}" onchange="updateChecklist(${i},'relative',this.value)" placeholder="D-7"><span class="badge">${esc(categoryOf(x.task))}</span><div><input value="${esc(x.task)}" onchange="updateChecklist(${i},'task',this.value)" placeholder="준비 업무"></div><select onchange="updateChecklist(${i},'assignee',this.value)">${["김담당","이담당","현장담당","미지정"].map(v=>`<option ${x.assignee===v?"selected":""}>${v}</option>`).join("")}</select><div class="row"><span class="status ${x.done?"done":"todo"}">${x.done?"완료":"미완료"}</span><button class="btn small" onclick="toggleChecklist(${i})">${x.done?"되돌리기":"완료"}</button><button class="btn small danger" onclick="deleteChecklist(${i})">×</button></div></div>`).join(""):`<div class="empty">체크리스트가 없습니다.</div>`}</div>`;
+}
+function updateChecklist(i,k,v){cur().checklist[i][k]=v;save();renderChecklist();renderDashboard();if(document.getElementById("programDetail").style.display!=="none")renderProgramDetail()}
+function toggleChecklist(i){cur().checklist[i].done=!cur().checklist[i].done;save();renderChecklist();renderDashboard();if(document.getElementById("programDetail").style.display!=="none")renderProgramDetail()}
+function deleteChecklist(i){cur().checklist.splice(i,1);save();renderChecklist();renderDashboard()}
+function renderInitial(){
+  Object.values(state.programs).forEach(p=>{p.baseSchedule=p.baseSchedule||JSON.parse(JSON.stringify(p.schedules||[]));p.reservations=p.reservations||[];p.memo=p.memo||"";if(p.participantCount==null)p.participantCount=(p.applicants||[]).length;if(p.groupA==null)p.groupA=(p.applicants||[]).filter(x=>x.group==="A").length;if(p.groupB==null)p.groupB=(p.applicants||[]).filter(x=>x.group==="B").length;delete p.applicants;});
+  document.getElementById("todayLabel").textContent=new Date().toLocaleDateString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"});
+  fillProgramSelect("checkProgramSelect");
+  renderDashboard();
+}
+renderInitial();
+</script>
+</body>
+</html>
